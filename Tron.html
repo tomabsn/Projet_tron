@@ -1,0 +1,55 @@
+<html>
+   <head>
+     <meta charset="UTF-8" />    
+     <title>Moto</title>
+     <style type="text/css"> td {padding: 20px; } </style>
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+     <script src="https://d3js.org/d3.v5.min.js"></script>
+     <script src="config.js"></script>
+     <script src="objet.js"></script>
+     <script src="Plateau.js"></script>
+     <!--<script src="squelette_client.js"></script> -->
+   </head>
+
+  <body>  
+     <h1 id='tmp'>Temps de Jeu :</h1>
+      <div>
+        Rejoindre la partie <input type="text" name="joueur"> </input> <button onClick="rejoindrePartie()"> Hello </button>
+     </div>
+      
+     <div id="damier"></div>
+
+
+
+     <script>
+        //QUESTION A POSER : IL SEMBLERAIT QUE LE EU "LAG" PLUS QUAND LES OUTILS DEV NE SONT PAS ACTIVES :(
+         // INITIALISATION DU PLATEAU DE JEU
+      let pl = new Plateau();
+      let x0,y0; var touches = [];
+      var timer = TMP_PARTIE;
+      var svgContainer = d3.select("#damier").append("svg").attr("width",PL_NBCOL*PL_L+2*MARGE).attr("height",PL_NBLIG*PL_L+2*MARGE);
+      pl.newPlateau(PL_L,PL_NBCOL,PL_NBLIG);
+      pl.newGrandeCases(PL_NBCOL*PL_L+MARGE,PL_NBLIG*PL_L+MARGE,4,4);
+      defEvent();
+     
+      var moto1;
+      var moto2;
+      
+      InitGame();
+      var myVar = setInterval(Move, 200, moto2);
+      
+
+
+
+   
+     </script>
+
+  </body>
+</html>
+
+
+
+
+
+
+

@@ -1,10 +1,7 @@
-var moto1;
-var moto2;
-var svgContainer = d3.select("body").append("svg").attr("width", 1000).attr("height", 600); //on crée un espace ou mettre la moto
 
 function InitGame(){
-    moto1 = new Moto(350,550 , 1, "black");
-    moto2 = new Moto(400, 550, 2, "red");
+    moto1 = new Moto(350,200 , 1, "black");
+    moto2 = new Moto(400, 200, 2, "red");
     moto1.dessinerMoto();
     moto2.dessinerMoto();
     
@@ -88,24 +85,29 @@ function Move(){
     Update(moto1);
 }
 
-var touches = [];
 
-d3.select("body")
-.on("keydown", function()
-{
-    var code = d3.event.keyCode;
-    if(touches.indexOf(code)<0) 
-        touches.push(code);
-});
 
-d3.select("body")
-.on("keyup", function()
+function defEvent()
 {
-    var code = d3.event.keyCode;
-    index = touches.indexOf(code);
-    if(index>=0) 
-        touches.splice(index,1);
-});
+                d3.select("body")
+            .on("keydown", function()
+            {
+                console.log("coucou toi");
+                var code = d3.event.keyCode;
+                if(touches.indexOf(code)<0) 
+                    touches.push(code);
+            });
+
+            d3.select("body")
+            .on("keyup", function()
+            {
+                var code = d3.event.keyCode;
+                index = touches.indexOf(code);
+                if(index>=0) 
+                    touches.splice(index,1);
+            });
+}
+
 
 function direction()
 {
@@ -123,6 +125,8 @@ function rotation(moto_m){
     var dir =  direction();
     moto_m.speedX = 0; //la direction est mise à 0 en X et Y
     moto_m.speedY = 0;
+    console.log("rotation" + dir);
+
           switch (dir) {               
               case 1:
                   if(moto_m.ori=="NO" || moto_m.ori=="SO"){
@@ -254,7 +258,3 @@ function avancedefault(moto_m){
     }
 
 }
-
-InitGame();
-
-var myVar = setInterval(Move, 10, moto2);
