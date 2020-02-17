@@ -4,38 +4,39 @@
  * résultat : initialise les motos donc créé les objets et les dessine sur la plateau.
  */
 function InitGame(){
-    moto1 = new Moto(350,200 , 1, "black");//création de moto 1
-    moto2 = new Moto(250, 250, 2, col_moto); //création de la moto 2
+    moto1 = new Moto(350,200 , 2, "black");//création de moto 1
+    //moto2 = new Moto(250, 250, 1, col_moto); //création de la moto 2
     moto1.dessinerMoto(); //on dessine la moto numéro 1
-    moto2.dessinerMoto(); //on dessone la moto numéro 2
+    //moto2.dessinerMoto(); //on dessone la moto numéro 2
     
 }
 
-/*définition de l'objet moto
+/*
+définition de l'objet moto
 Moto(cooronnée X, coordonnée Y, un identifiant id_p, une couleur color)
 new Moto(X, Y, 158, "red");
 */
 function Moto(X, Y, id_p, color){
 
+    this.id_player = id_p; //identifiant du joueur
     this.X = X;//coordonnée X
     this.Y = Y; //coordonnée Y
     this.speedX = 0; //vitesse de déplacement selon l'axe X
-    this.speedY = -10; //vitesse de déplacement selon l'axe Y
-    /* Attention speedY ici = -10 car pour l'instant la moto va vers le haut
-    pour changer ca une première idée est que celon l'identifiant on pars du haut vers le bas pour id_p = 2
-    et on pars du bas vers le haut pour id_p = 1
-    */
+    
 
-    this.id_player = id_p; //identifiant du joueur
+    //vitesse de déplacement selon l'axe y 
+    if(this.id_player == 1){
+        this.speedY -= 10;
+        this.ori = "N";
+        this.rot = 0;//cet attribut nous permet de savoir l'angle de rotation de la moto
+    }else{
+        this.speedY += 10;
+        this.ori = "S";
+        this.rot = 180;//cet attribut nous permet de savoir l'angle de rotation de la moto
+    }
     this.color = color; //couleur de la moto du joueur
     this.rectangle = null; /*cet attribut vas nous servire pour stocker le dessin de la moto*/
-    this.rot = 0; //cet attribut nous permet de savoir l'angle de rotation de la moto
-    /*Attention ici aussi le cas n'est pas global !!!!
-    c'est a dire que pour l'instant rot=0 car la moto pars du bas vers le haut
-    si la moto partait du haut vers le bas il faudrait mettre rot= 180
-    A changer*/
-    this.ori = "N"; /*L'orientation de la moto nous permettra de changer de direction dans le temps 
-    Attention ici aussi ceci n'est pas global il ne dépend que du cas ou la moto pars du bas vers le haut*/
+     
     this.train_act = false; //cet attribut est un booléen pour savoir la trainé de la moto est active ou non
 
     /*dessinerMoto() méthode de l'objet moto
@@ -98,7 +99,12 @@ function Moto(X, Y, id_p, color){
     this.newPos = function() {
         this.X += this.speedX;
         this.Y += this.speedY;  
-    }        
+    } 
+    
+    this.destroy = function(){
+        var elem = document.getElementById("moto_html"+this.id_player);
+        elem.parentNode.removeChild(elem);
+    }
 }
 
 /**
@@ -248,11 +254,10 @@ function rotation(moto_m){
  * ne prend aucun paramètre pour le moment mais devrait prendre les deux motos en paramètre
  * résulatat : on regarde si l'utilisateur souhaite faire une rotation (changer de sens), et on appel les fonctions Update de chaque moto
  */
-function Move(){
+function Move(moto_m){
     //on rafracihi la moto
-    rotation(moto2); //à chaque frame on regarde si on touche a été enfoncé et on effectue la rotation et le changement de direction 
-    Update(moto2); //on donne les nouvelles coordonnées à la moto via la fonction Update
-    Update(moto1);
+    rotation(moto_m); //à chaque frame on regarde si on touche a été enfoncé et on effectue la rotation et le changement de direction 
+    Update(moto_m); //on donne les nouvelles coordonnées à la moto via la fonction Update
    
 }
 
@@ -567,17 +572,12 @@ function collision(moto_m)
        
 }
 
-
 /**
- * Frame()
- * ne prend aucun paramètre pour le moment sauf que il faudrait qu'il prenne en paramètre les deux objets moto qui seront sur le plateau
- * resultat : on met en mouvement toutes les motos et on détecte si il y a une collision.
- * De plus on gère ici les chronos pour le mur
+ * timerMur(moto_m)
+ * moto_m est un objet de type moto
+ * permet de mettre en place le timer pour le mur
  */
-function Frame()
-{
-    Move();
-    collision(moto2);
+function timerMurF(moto_m){
 
     if (timerMur > 0) timerMur -= (INTERVAL/1000);
 
@@ -587,13 +587,13 @@ function Frame()
     {
         timerMur = TMP_RECHARGEMUR;
         murActif = false;
-        moto2.train_act = false;
+        moto_m.train_act = false;
     }
     if (timerMur <= 0 && murActif == false)//Quand ona fini de recharger le mur
     {
         timerMur = 0;
         murActif = false;
-        moto2.train_act = false;
+        moto_m.train_act = false;
     }
 
     if (timerMur == 0)
@@ -613,7 +613,6 @@ function Frame()
     }
         
 }
-
 
 /**
  * 
@@ -680,56 +679,56 @@ function avancedefault(moto_m){
     switch (moto_m.ori){
         case "N":
             if(moto_m.train_act){
-                pl.transformeCase(moto2.X+5,moto2.Y+25,col_traine,"mur"); //permet de créer la trainée de la moto
+                pl.transformeCase(moto_m.X+5,moto_m.Y+25,moto_m.color,"mur"); //permet de créer la trainée de la moto
             }
             moto_m.moveup();
         break;
 
         case "S":
             if(moto_m.train_act){
-                pl.transformeCase(moto2.X+5,moto2.Y+25,col_traine,"mur"); //permet de créer la trainée de la moto
+                pl.transformeCase(moto_m.X+5,moto_m.Y+25,moto_m.color,"mur"); //permet de créer la trainée de la moto
             }
             moto_m.movedown();
         break;
         
         case "O":
             if(moto_m.train_act){
-                pl.transformeCase(moto2.X+5,moto2.Y+25,col_traine,"mur"); //permet de créer la trainée de la moto
+                pl.transformeCase(moto_m.X+5,moto_m.Y+25,moto_m.color,"mur"); //permet de créer la trainée de la moto
             }
             moto_m.moveleft();
             break;
         
         case "E":
             if(moto_m.train_act){
-                pl.transformeCase(moto2.X+5,moto2.Y+25,col_traine,"mur"); //permet de créer la trainée de la moto
+                pl.transformeCase(moto_m.X+5,moto_m.Y+25,moto_m.color,"mur"); //permet de créer la trainée de la moto
             }
             moto_m.movRight();
             break;
             
         case "NO":
             if(moto_m.train_act){
-                pl.transformeCase(moto2.X+5,moto2.Y+25,col_traine,"mur"); //permet de créer la trainée de la moto
+                pl.transformeCase(moto_m.X+5,moto_m.Y+25,moto_m.color,"mur"); //permet de créer la trainée de la moto
             }
             moto_m.moveUPLEFT();
             break;
         
         case "NE":
             if(moto_m.train_act){
-                pl.transformeCase(moto2.X+5,moto2.Y+25,col_traine,"mur"); //permet de créer la trainée de la moto
+                pl.transformeCase(moto_m.X+5,moto_m.Y+25,moto_m.color,"mur"); //permet de créer la trainée de la moto
             }
             moto_m.moveUPRIGHT();
             break;
 
         case "SO":
             if(moto_m.train_act){
-                pl.transformeCase(moto2.X+5,moto2.Y+25,col_traine,"mur"); //permet de créer la trainée de la moto
+                pl.transformeCase(moto_m.X+5,moto_m.Y+25,moto_m.color,"mur"); //permet de créer la trainée de la moto
             }
             moto_m.moveDOWNLEFT();
             break;
         
         case "SE":
             if(moto_m.train_act){
-                pl.transformeCase(moto2.X+5,moto2.Y+25,col_traine,"mur"); //permet de créer la trainée de la moto
+                pl.transformeCase(moto_m.X+5,moto_m.Y+25,moto_m.color,"mur"); //permet de créer la trainée de la moto
             }
             moto_m.moveDOWNRIGTH();
             break;
@@ -745,5 +744,27 @@ function avancedefault(moto_m){
  */
 function alertcol()
 {
-    console.log("Collision");
+    var txt;
+    var r = confirm("Voulez vous réessayer");
+    if (r == true) {
+        InitGame();
+    }
+}
+
+/**
+ * Frame(moto_m1, moto_m2)
+ * moto_m1/2 sont deux objets de type moto
+ * resultat : on met en mouvement toutes les motos et on détecte si il y a une collision et de plus on met leur chrono sur les murs
+ */
+function Frame(moto_m1)
+{
+    Move(moto_m1);
+    //Move(moto_m2);
+
+    collision(moto_m1);
+    //collision(moto_m2);
+
+    timerMurF(moto_m1);
+    //timerMur(moto_m2);
+
 }

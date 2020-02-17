@@ -7,15 +7,14 @@
      <script src="https://d3js.org/d3.v5.min.js"></script>
      <script src="config.js"></script>
      <script src="objet.js"></script>
-      <script src="Plateau.js"></script>
-
+     <script src="Plateau.js"></script>
      <!--<script src="squelette_client.js"></script> -->
    </head>
 
   <body id="main">  
      <h1 id='tmp'>Temps de Jeu :</h1>
       <div>
-        
+        Rejoindre la partie <input type="text" name="joueur"> </input> <button onClick="rejoindrePartie()"> Hello </button>
      </div>
       
      <div id="damier"></div>
@@ -24,29 +23,27 @@
 
 
 
-   <script>
+     <script>
         //QUESTION A POSER : IL SEMBLERAIT QUE LE EU "LAG" PLUS QUAND LES OUTILS DEV NE SONT PAS ACTIVES :(
          // INITIALISATION DU PLATEAU DE JEU
-      let pl = new Plateau();
-      let x0,y0; var touches = [];
-      var timer = TMP_PARTIE;
-      var svgContainer = d3.select("#damier").append("svg").attr("width",PL_NBCOL*PL_L).attr("height",PL_NBLIG*PL_L);
-      pl.newPlateau(PL_L,PL_NBCOL,PL_NBLIG);
-      pl.newGrandeCases(PL_NBCOL*PL_L,PL_NBLIG*PL_L,5,5);
-      
-     
-      var moto1;
-      var moto2;
-      var timerMur = 0;
-      var murActif = false;
-      
-      InitGame();
-      defEvent(moto2);
-      var myVar = setInterval(Move, INTERVAL);
-   
-   </script>
+         let pl = new Plateau();
+         let x0,y0; var touches = [];
+         var timer = TMP_PARTIE;
+         var svgContainer = d3.select("#damier").append("svg").attr("width",PL_NBCOL*PL_L).attr("height",PL_NBLIG*PL_L);
+         pl.newPlateau(PL_L,PL_NBCOL,PL_NBLIG);
+         pl.newGrandeCases(PL_NBCOL*PL_L,PL_NBLIG*PL_L,5,5);
+               
+         let moto1;
+         //let moto2;
+         var timerMur = 0;
+         var murActif = false;
 
-  </body>
+         InitGame();
+         defEvent(moto1);
+         var myVar = setInterval(Frame, INTERVAL, moto1);
+      
+      </script>
+   </body>
 </html>
 
 
