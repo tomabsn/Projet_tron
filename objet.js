@@ -3,12 +3,11 @@
  * ne prend aucun paramètre
  * résultat : initialise les motos donc créé les objets et les dessine sur la plateau.
  */
-function InitGame(){
-    moto1 = new Moto(350,200 , 2, "black");//création de moto 1
-    //moto2 = new Moto(250, 250, 1, col_moto); //création de la moto 2
+function InitGame(id_){
+    moto1 = new Moto(id_);//création de moto 1
     moto1.dessinerMoto(); //on dessine la moto numéro 1
-    //moto2.dessinerMoto(); //on dessone la moto numéro 2
-    
+    socket.emit('envoi_autre_joueur_serveur', moto1);
+    //console.log(moto1.id_player);
 }
 
 /*
@@ -16,25 +15,28 @@ définition de l'objet moto
 Moto(cooronnée X, coordonnée Y, un identifiant id_p, une couleur color)
 new Moto(X, Y, 158, "red");
 */
-function Moto(X, Y, id_p, color){
+function Moto(id_p){
 
     this.id_player = id_p; //identifiant du joueur
-    this.X = X;//coordonnée X
-    this.Y = Y; //coordonnée Y
     this.speedX = 0; //vitesse de déplacement selon l'axe X
     
 
     //vitesse de déplacement selon l'axe y 
     if(this.id_player == 1){
+        this.x = 300;
+        this.Y = 400;
         this.speedY -= 10;
         this.ori = "N";
+        this.color = "black"; //couleur de la moto du joueur
         this.rot = 0;//cet attribut nous permet de savoir l'angle de rotation de la moto
     }else{
+        this.x = 300;
+        this.Y = 200;
         this.speedY += 10;
         this.ori = "S";
+        this.color = "red"; //couleur de la moto du joueur
         this.rot = 180;//cet attribut nous permet de savoir l'angle de rotation de la moto
     }
-    this.color = color; //couleur de la moto du joueur
     this.rectangle = null; /*cet attribut vas nous servire pour stocker le dessin de la moto*/
      
     this.train_act = false; //cet attribut est un booléen pour savoir la trainé de la moto est active ou non
@@ -256,6 +258,7 @@ function rotation(moto_m){
  */
 function Move(moto_m){
     //on rafracihi la moto
+    //console.log("dans Move");
     rotation(moto_m); //à chaque frame on regarde si on touche a été enfoncé et on effectue la rotation et le changement de direction 
     Update(moto_m); //on donne les nouvelles coordonnées à la moto via la fonction Update
    
@@ -269,8 +272,11 @@ function Move(moto_m){
  */
 function collision(moto_m)
 {
+    //console.log("je suis dans la fct collision");
     let x = (moto_m.X +5);
     let y = (moto_m.Y +25);
+
+    let safeZoneOffset = Math.sqrt(2*(PL_L*PL_L)) + 1;
 
     let xi;
     let yi;
@@ -293,14 +299,14 @@ function collision(moto_m)
             if(x%PL_L==0)jmax=MOT_Width;
             else jmax = MOT_Width+PL_L;
 
-            for (let i = 0; i < 25-PL_L; i+=PL_L)           
+            for (let i = 0; i < 25-safeZoneOffset; i+=PL_L)           
             {
                 for (let j = 0; j < jmax; j+=PL_L)
                 {
                    
                     if(pl.isMur(xi+j,y+i))
                     {
-                    alertcol()
+                    alertcol();
                         break;
                     }
                      //svgContainer.append("rect").attr("x", xi+j).attr("y", y+i).attr("width", 1).attr("height", 1).attr("fill", "green");
@@ -321,14 +327,14 @@ function collision(moto_m)
             else jmax = MOT_Width+PL_L;
 
            
-            for (let i = 0; i < 25-PL_L; i+=PL_L)           
+            for (let i = 0; i < 25-safeZoneOffset; i+=PL_L)           
             {
                 for (let j = 0; j < jmax; j+=PL_L)
                 {
                    
                     if(pl.isMur(xi+j,y-i))
                     {
-                    alertcol()
+                    alertcol();
                         break;
                     }
                     //  svgContainer.append("rect").attr("x", xi+j).attr("y", y-i).attr("width", 1).attr("height", 1).attr("fill", "cyan");
@@ -348,7 +354,7 @@ function collision(moto_m)
 
             
 
-            for (let i = 0; i < 25-PL_L; i+=PL_L)           
+            for (let i = 0; i < 25-safeZoneOffset; i+=PL_L)           
             {
                 for (let j = 0; j < jmax; j+=PL_L)
                 {
@@ -386,7 +392,7 @@ function collision(moto_m)
             //     //svgContainer.append("rect").attr("x", x).attr("y", yi+j).attr("width", 1).attr("height", 1).attr("fill", "red");    
             // }
 
-            for (let i = 0; i < 25-PL_L; i+=PL_L)           
+            for (let i = 0; i < 25-safeZoneOffset; i+=PL_L)           
             {
                 for (let j = 0; j < jmax; j+=PL_L)
                 {
@@ -422,7 +428,7 @@ function collision(moto_m)
 
            
               jmax = Math.floor(MOT_Width/PL_L);
-            for (let i = 0; i*PL_L < 25-PL_L; i++) {
+            for (let i = 0; i*PL_L < 25-safeZoneOffset; i++) {
 
               for (let j = 0; j < jmax; j++)
               {
@@ -432,7 +438,7 @@ function collision(moto_m)
                       break;
                   }
                   
-                //    svgContainer.append("rect").attr("x", x2+j*bidule+i*bidule).attr("y", y2-j*bidule+i*bidule).attr("width", 1).attr("height", 1).attr("fill", "green");   
+                    //svgContainer.append("rect").attr("x", x2+j*bidule+i*bidule).attr("y", y2-j*bidule+i*bidule).attr("width", 1).attr("height", 1).attr("fill", "green");   
               }
 
               if(pl.isMur(x2+2*boui+i*bidule , y2+2*boui+i*bidule))
@@ -440,7 +446,7 @@ function collision(moto_m)
                       alertcol()
                       break;
                   }
-            //  svgContainer.append("rect").attr("x", x2+2*boui+i*bidule).attr("y", y2-2*boui+i*bidule).attr("width", 1).attr("height", 1).attr("fill", "green");
+            //svgContainer.append("rect").attr("x", x2+2*boui+i*bidule).attr("y", y2-2*boui+i*bidule).attr("width", 1).attr("height", 1).attr("fill", "green");
                 }
            
             break;
@@ -459,7 +465,7 @@ function collision(moto_m)
          
             jmax = Math.floor(MOT_Width/PL_L);
 
-            for (let i = 0; i*PL_L < 25-PL_L; i++) {
+            for (let i = 0; i*PL_L < 25-safeZoneOffset; i++) {
 
                 for (let j = 0; j < jmax; j++)
                 {
@@ -499,7 +505,7 @@ function collision(moto_m)
               jmax = Math.floor(MOT_Width/PL_L);
             
 
-              for (let i = 0; i*PL_L < 25-PL_L; i++) {
+              for (let i = 0; i*PL_L < 25-safeZoneOffset; i++) {
 
               for (let j = 0; j < jmax; j++)
               {
@@ -540,7 +546,7 @@ function collision(moto_m)
            
             jmax = Math.floor(MOT_Width/PL_L);
 
-            for (let i = 0; i*PL_L < 25-PL_L; i++) {
+            for (let i = 0; i*PL_L < 25-safeZoneOffset; i++) {
             for (let j = 0; j < jmax; j++)
             {
 
@@ -578,6 +584,8 @@ function collision(moto_m)
  * permet de mettre en place le timer pour le mur
  */
 function timerMurF(moto_m){
+
+    //console.log("dans timerMurF");
 
     if (timerMur > 0) timerMur -= (INTERVAL/1000);
 
@@ -744,11 +752,9 @@ function avancedefault(moto_m){
  */
 function alertcol()
 {
-    var txt;
-    var r = confirm("Voulez vous réessayer");
-    if (r == true) {
-        InitGame();
-    }
+    //alert("collision");
+
+    socket.emit('collision','collision moto');   
 }
 
 /**
@@ -758,13 +764,14 @@ function alertcol()
  */
 function Frame(moto_m1)
 {
-    Move(moto_m1);
+
+    //Move(moto_m1);
     //Move(moto_m2);
 
-    collision(moto_m1);
+    //collision(moto_m1);
     //collision(moto_m2);
 
-    timerMurF(moto_m1);
+    //timerMurF(moto_m1);
     //timerMur(moto_m2);
 
 }

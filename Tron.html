@@ -2,46 +2,66 @@
    <head>
      <meta charset="UTF-8" />    
      <title>Moto</title>
-     <style type="text/css"> td {padding: 20px; } </style>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
      <script src="https://d3js.org/d3.v5.min.js"></script>
      <script src="config.js"></script>
      <script src="objet.js"></script>
      <script src="Plateau.js"></script>
-     <!--<script src="squelette_client.js"></script> -->
    </head>
 
-  <body id="main">  
-     <h1 id='tmp'>Temps de Jeu :</h1>
-      <div>
-        Rejoindre la partie <input type="text" name="joueur"> </input> <button onClick="rejoindrePartie()"> Hello </button>
-     </div>
-      
-     <div id="damier"></div>
+   <body id="main">  
 
-     <button id="Space">Space</button><label id="etatSpace">Ready</label>
+      <h1 id='tmp'>Temps de Jeu :</h1>
+
+      <div id="damier"></div>
+
+      <button id="Space">Space</button><label id="etatSpace">Ready</label>
+
+      <script src="node_modules/socket.io-client/dist/socket.io.js"></script>
+      <script>
 
 
+         let id_player_html = 12;
+         
 
-     <script>
-        //QUESTION A POSER : IL SEMBLERAIT QUE LE EU "LAG" PLUS QUAND LES OUTILS DEV NE SONT PAS ACTIVES :(
-         // INITIALISATION DU PLATEAU DE JEU
-         let pl = new Plateau();
+         var socket = io.connect('http://localhost:8080');
+
+
+         socket.on('collision', function(message){
+            alert(message);
+         });
+
+         socket.on('id_joueur', function(id){
+            id_player_html = id;
+            console.log("coucou je recup l'id_player venant du serveur : " + id_player_html);
+            DemareJeu(id_player_html);
+         });
+
+         socket.on('autre_joueur', function(moto2){
+            console.log(moto2);
+         });
+
+
          let x0,y0; var touches = [];
          var timer = TMP_PARTIE;
-         var svgContainer = d3.select("#damier").append("svg").attr("width",PL_NBCOL*PL_L).attr("height",PL_NBLIG*PL_L);
-         pl.newPlateau(PL_L,PL_NBCOL,PL_NBLIG);
-         pl.newGrandeCases(PL_NBCOL*PL_L,PL_NBLIG*PL_L,5,5);
-               
+         
          let moto1;
          //let moto2;
          var timerMur = 0;
          var murActif = false;
 
-         InitGame();
-         defEvent(moto1);
-         var myVar = setInterval(Frame, INTERVAL, moto1);
-      
+         let pl = new Plateau();
+         var svgContainer = d3.select("#damier").append("svg").attr("width",PL_NBCOL*PL_L).attr("height",PL_NBLIG*PL_L);
+         pl.newPlateau(PL_L,PL_NBCOL,PL_NBLIG);
+         pl.newGrandeCases(PL_NBCOL*PL_L,PL_NBLIG*PL_L,5,5);
+
+         function DemareJeu(id_){
+
+
+            InitGame(id_player_html);
+            defEvent(moto1);
+
+            var myVar = setInterval(Frame, INTERVAL, moto1);
+         }
       </script>
    </body>
 </html>
