@@ -49,8 +49,8 @@
          });
 
          socket.on('update_joueur', function(moto){
-            console.log(moto);
             if(moto.id_player == moto2.id_player){
+
                 moto2.X = moto.X;
                 moto2.Y = moto.Y;
                 moto2.ori = moto.ori;
@@ -58,6 +58,11 @@
                 moto2.speedX = moto.speedX;
                 moto2.speedY = moto.speedY;
                 moto2.train_act = moto.train_act;
+
+                if(moto2.train_act){
+                    pl.transformeCase(moto2.X+5,moto2.Y+25,moto2.color,"mur"); //permet de créer la trainée de la moto
+                }
+
             }
             Update(moto1);
             Update(moto2);

@@ -9,13 +9,13 @@ io.sockets.on('connection', function(socket){
     }
 
     if(id==2){
-        socket.emit('joueurs_pret');
-        socket.broadcast.emit('joueurs_pret');
+        io.emit('joueurs_pret');
+        //socket.broadcast.emit('joueurs_pret');
     }
     
     socket.on('collision', function(message){
         socket.emit('collision', 'vous etes en collision !');
-        socket.broadcast.emit('collision', 'il y a eu une collision');
+        socket.broadcast.emit('collision', 'l\'autre joueur est en collision');
     });
 
     socket.on('envoi_autre_joueur_serveur', function(moto){

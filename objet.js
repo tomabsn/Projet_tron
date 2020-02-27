@@ -664,8 +664,7 @@ function defEvent(motoPr)
         if(index>=0) 
             touches.splice(index,1);
       
-      });
-             
+      });           
 }
 
 /**
