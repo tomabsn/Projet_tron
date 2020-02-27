@@ -49,6 +49,16 @@
          });
 
          socket.on('update_joueur', function(moto){
+            console.log(moto);
+            if(moto.id_player == moto2.id_player){
+                moto2.X = moto.X;
+                moto2.Y = moto.Y;
+                moto2.ori = moto.ori;
+                moto2.rot = moto.rot;
+                moto2.speedX = moto.speedX;
+                moto2.speedY = moto.speedY;
+                moto2.train_act = moto.train_act;
+            }
             Update(moto1);
             Update(moto2);
          });

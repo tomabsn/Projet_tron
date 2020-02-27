@@ -23,8 +23,8 @@ io.sockets.on('connection', function(socket){
     });
 
     socket.on('joueur_bouge', function(moto){
-        socket.emit('update_joueur', moto);
-        socket.broadcast.emit('update_joueur', moto);
+        io.emit('update_joueur', moto);
+        //socket.broadcast.emit('update_joueur', moto);
     });
 });
 

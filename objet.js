@@ -257,7 +257,6 @@ function rotation(moto_m){
  */
 function Move(moto_m){
     //on rafracihi la moto
-    //console.log("dans Move");
     rotation(moto_m); //à chaque frame on regarde si on touche a été enfoncé et on effectue la rotation et le changement de direction 
 }
 
@@ -570,9 +569,7 @@ function collision(moto_m)
 
        
     
-        }
-
-       
+        }   
 }
 
 /**
@@ -615,8 +612,7 @@ function timerMurF(moto_m){
     {
         document.getElementById("Space").innerText = "Rechargement";
         document.getElementById("etatSpace").innerText = "Temps de recharge restant restant : "+timeraffiche+" s";
-    }
-        
+    }   
 }
 
 /**
@@ -739,7 +735,6 @@ function avancedefault(moto_m){
             break;
         default: console.log("pas d'oritentation");
     }
-
 }
 
 /**
@@ -765,12 +760,11 @@ function Frame(moto_m1)
     Move(moto_m1);
     //Move(moto_m2);
 
-    socket.emit('joueur_bouge', moto_m1);   
+    socket.emit('joueur_bouge', moto_m1);
 
     collision(moto_m1);
     //collision(moto_m2);
 
     timerMurF(moto_m1);
     //timerMur(moto_m2);
-
 }
