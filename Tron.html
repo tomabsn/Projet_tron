@@ -21,25 +21,37 @@
 
 
          let id_player_html = 12;
+         let moto2;
          
 
          var socket = io.connect('http://localhost:8080');
 
 
+         //nous alerte lors d'une collision de nous ou de l'autre joueur
          socket.on('collision', function(message){
             alert(message);
          });
 
+         //nous donne l'id du joueur pour la partie en cours (sert pour initialiser la moto)
          socket.on('id_joueur', function(id){
             id_player_html = id;
-            console.log("coucou je recup l'id_player venant du serveur : " + id_player_html);
+         });
+
+         //quand les deux joueurs sont pret on lance la partie
+         socket.on('joueurs_pret', function(){
             DemareJeu(id_player_html);
          });
 
-         socket.on('autre_joueur', function(moto2){
-            console.log(moto2);
+         //il faut arriver à récupérer la moto du joueur adverse
+         socket.on('autre_joueur', function(motoE){
+            moto2 = new Moto(motoE.id_player);
+            moto2.dessinerMoto();
          });
 
+         socket.on('update_joueur', function(moto){
+            Update(moto1);
+            Update(moto2);
+         });
 
          let x0,y0; var touches = [];
          var timer = TMP_PARTIE;
@@ -56,9 +68,10 @@
 
          function DemareJeu(id_){
 
-
             InitGame(id_player_html);
             defEvent(moto1);
+
+            socket.emit('envoi_autre_joueur_serveur', moto1);
 
             var myVar = setInterval(Frame, INTERVAL, moto1);
          }

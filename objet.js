@@ -6,7 +6,6 @@
 function InitGame(id_){
     moto1 = new Moto(id_);//création de moto 1
     moto1.dessinerMoto(); //on dessine la moto numéro 1
-    socket.emit('envoi_autre_joueur_serveur', moto1);
     //console.log(moto1.id_player);
 }
 
@@ -23,16 +22,16 @@ function Moto(id_p){
 
     //vitesse de déplacement selon l'axe y 
     if(this.id_player == 1){
-        this.x = 300;
+        this.X = 300;
         this.Y = 400;
-        this.speedY -= 10;
+        this.speedY = -1;
         this.ori = "N";
         this.color = "black"; //couleur de la moto du joueur
         this.rot = 0;//cet attribut nous permet de savoir l'angle de rotation de la moto
     }else{
-        this.x = 300;
+        this.X = 300;
         this.Y = 200;
-        this.speedY += 10;
+        this.speedY = 1;
         this.ori = "S";
         this.color = "red"; //couleur de la moto du joueur
         this.rot = 180;//cet attribut nous permet de savoir l'angle de rotation de la moto
@@ -260,8 +259,6 @@ function Move(moto_m){
     //on rafracihi la moto
     //console.log("dans Move");
     rotation(moto_m); //à chaque frame on regarde si on touche a été enfoncé et on effectue la rotation et le changement de direction 
-    Update(moto_m); //on donne les nouvelles coordonnées à la moto via la fonction Update
-   
 }
 
 /**
@@ -765,13 +762,15 @@ function alertcol()
 function Frame(moto_m1)
 {
 
-    //Move(moto_m1);
+    Move(moto_m1);
     //Move(moto_m2);
 
-    //collision(moto_m1);
+    socket.emit('joueur_bouge', moto_m1);   
+
+    collision(moto_m1);
     //collision(moto_m2);
 
-    //timerMurF(moto_m1);
+    timerMurF(moto_m1);
     //timerMur(moto_m2);
 
 }
