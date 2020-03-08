@@ -2,46 +2,146 @@
    <head>
      <meta charset="UTF-8" />    
      <title>Moto</title>
-     <style type="text/css"> td {padding: 20px; } </style>
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
      <script src="https://d3js.org/d3.v5.min.js"></script>
      <script src="config.js"></script>
      <script src="objet.js"></script>
      <script src="Plateau.js"></script>
-     <!--<script src="squelette_client.js"></script> -->
    </head>
 
-  <body id="main">  
-     <h1 id='tmp'>Temps de Jeu :</h1>
-      <div>
-        Rejoindre la partie <input type="text" name="joueur"> </input> <button onClick="rejoindrePartie()"> Hello </button>
-     </div>
-      
-     <div id="damier"></div>
+   <body id="main">  
 
-     <button id="Space">Space</button><label id="etatSpace">Ready</label>
+      <h1 id='tmp'>Temps de Jeu :</h1>
+
+      <div id="damier"></div>
+
+      <button id="Space">Space</button><label id="etatSpace">Ready</label>
+      <div id = "etat_partie"></div>
+      <div id="info_joueur">Joueur : </div>
+
+      <script src="node_modules/socket.io-client/dist/socket.io.js"></script>
+      <script>
 
 
 
-     <script>
-        //QUESTION A POSER : IL SEMBLERAIT QUE LE EU "LAG" PLUS QUAND LES OUTILS DEV NE SONT PAS ACTIVES :(
-         // INITIALISATION DU PLATEAU DE JEU
-         let pl = new Plateau();
+/** ======================DEFINITION DES VARIABLES DU JEU ====================*/
          let x0,y0; var touches = [];
-         var timer = TMP_PARTIE;
-         var svgContainer = d3.select("#damier").append("svg").attr("width",PL_NBCOL*PL_L).attr("height",PL_NBLIG*PL_L);
-         pl.newPlateau(PL_L,PL_NBCOL,PL_NBLIG);
-         pl.newGrandeCases(PL_NBCOL*PL_L,PL_NBLIG*PL_L,5,5);
-               
-         let moto1;
-         //let moto2;
-         var timerMur = 0;
-         var murActif = false;
+         let score = 0;
+         let timer = 0;
+         let myvar; // variable pour le rafraichissement
+         
+         let moto1; //moto du joueur
+         let moto2; //moto du joueur ennemie
+         let id_player_html; //id du joueur actuel
 
-         InitGame();
-         defEvent(moto1);
-         var myVar = setInterval(Frame, INTERVAL, moto1);
-      
+         let timerMur = 0;
+         let murActif = false;
+
+         let svgContainer; // pour afficher le plateau
+         let pl; //plateau
+
+
+         let socket = io.connect('http://localhost:8080');
+
+
+
+
+         /**=============== DEFINITION DES FONCTIONS DE SOCKET (COMMUNICATION AVEC LE SERVEUR) =====================*/
+
+         //nous alerte lors d'une collision de nous ou de l'autre joueur
+         socket.on('collision', function(message){
+            clearInterval(myvar);
+            document.getElementById("etat_partie").innerText = "le joueur "+message+" est en collision";
+
+            if(message != moto1.id_player){
+               score += 10;
+            }
+            setTimeout(socket.emit('fin_de_manche'), 15000);
+         });
+
+         //nous donne l'id du joueur pour la partie en cours (sert pour initialiser la moto)
+         socket.on('id_joueur', function(id){
+            id_player_html = id;
+         });
+
+         //quand les deux joueurs sont pret on lance la partie
+         socket.on('joueurs_pret', function(){
+            CréerPlateau(id_player_html);
+         });
+
+         //il faut arriver à récupérer la moto du joueur adverse
+         socket.on('autre_joueur', function(motoE){
+            moto2 = new Moto(motoE.id_player);
+            moto2.dessinerMoto();
+         });
+
+
+         socket.on('fin_de_manche', function(){
+            document.getElementById("etat_partie").innerText = "Fin de la manche une nouvelle manche va commencer";
+            var elem = document.getElementById("dessin");
+            elem.parentNode.removeChild(elem);
+            CréerPlateau(id_player_html);
+         });
+         /**
+         lorsque on recoit le message du serveur comme quoi un joueur à bougé deux cas : 
+         premier cas c'est nous alors on Update juste les deux motos
+         deuxième cas on regarde si l'id de l'objet passé en paramètre est bien l'id de la moto adverse et dans ce cas on lui donne les arguments (de plus si la trainé est activé on la dessine)
+         et ensuite on Update les deux motos
+
+         */
+         socket.on('update_joueur', function(moto){
+            if(moto.id_player == moto2.id_player){
+
+                moto2.X = moto.X;
+                moto2.Y = moto.Y;
+                moto2.ori = moto.ori;
+                moto2.rot = moto.rot;
+                moto2.speedX = moto.speedX;
+                moto2.speedY = moto.speedY;
+                moto2.train_act = moto.train_act;
+
+                if(moto2.train_act){
+                    pl.transformeCase(moto2.X+5,moto2.Y+25,moto2.color,"mur"); //permet de créer la trainée de la moto
+                }
+            }
+            Update(moto1);
+            Update(moto2);
+         });
+
+
+         
+
+
+         /**============= FONCTIONS POUR LA MISE EN MARCHE DU JEU COTE CLIENT ==============*/ 
+
+         /**
+          * CréerPlateau(id_)
+          * id_ : identifiants du joueur client
+          * resultat : cette fonctions permet de dessiner/initialiser le plateau et les motos de deux joueur
+          * Un timer de 10 secondes est lancé et à la fin de ce timer on lance la partie 
+         */
+         function CréerPlateau(id_){
+            pl = new Plateau();
+            svgContainer = d3.select("#damier").append("svg").attr("id", "dessin").attr("width",PL_NBCOL*PL_L).attr("height",PL_NBLIG*PL_L);
+            pl.newPlateau(PL_L,PL_NBCOL,PL_NBLIG);
+            pl.newGrandeCases(PL_NBCOL*PL_L,PL_NBLIG*PL_L,5,5);
+            
+            InitGame(id_player_html);
+            defEvent(moto1);
+
+            document.getElementById("info_joueur").innerText = "Couleur moto : "+moto1.color+"\n Score : "+score;
+
+            socket.emit('envoi_autre_joueur_serveur', moto1);
+
+            setTimeout(lanceMoto, 15000);
+         }
+
+         /**
+          * lanceMoto()
+          * resultat : Lance une manche et fait appel à la fonctions frame toutes les 20 ms
+         */
+         function lanceMoto(){
+            myvar = setInterval(Frame, INTERVAL, moto1);
+         }
       </script>
    </body>
 </html>
