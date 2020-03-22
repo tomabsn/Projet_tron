@@ -110,24 +110,25 @@ $(document).ready(function(){
         }
 
 
-        function GenerPlateau(id_,svgContainer){
+        function GenerPlateau(){
             pl = new Plateau();
             svgContainer = d3.select('#damier').append('svg').attr('width',PL_NBCOL*PL_L).attr('height',PL_NBLIG*PL_L).attr('id','plateau_');
             pl.newPlateau(PL_L,PL_NBCOL,PL_NBLIG);
             pl.newGrandeCases(PL_NBCOL*PL_L,PL_NBLIG*PL_L,5,5);
-            
+            console.log(svgContainer);
             socket.emit('CommencerPartie',indiceRoom);
 
         }
 
         function DemarePartie(){
-            InitGame(ID_joueur,svgContainer, indiceRoom);
+            console.log(svgContainer);
+            InitGame(ID_joueur, indiceRoom);
             defEvent(moto1);
 
             console.log("l'indice de la room est :" + indiceRoom);
 
             socket.emit('envoi_de_notre_moto',moto1,indiceRoom);
-            setTimeout(lanceMoto, 10000);
+            //setTimeout(lanceMoto, 10000);
         }
 
         /*============================= Met en mouvement les motos ================================ **/
@@ -212,13 +213,14 @@ $(document).ready(function(){
         });
 
         socket.on('generer_partie',function(){
-            GenerPlateau(ID_joueur, svgContainer);
+            console.log("je genere la partie");
+            GenerPlateau();
         });
 
         //il faut arriver à récupérer la moto du joueur adverse
         socket.on('autre_joueur', function(motoE){
             moto2 = new Moto(motoE.id_player);
-            moto2.dessinerMoto(svgContainer);
+            moto2.dessinerMoto();
         });
 
         //quand les deux joueurs sont pret on lance la partie
