@@ -111,6 +111,8 @@ $(document).ready(function(){
 
 
         function GenerPlateau(){
+            var elem = document.getElementById("btn_ready");
+            elem.parentNode.removeChild(elem);
             pl = new Plateau();
             svgContainer = d3.select('#damier').append('svg').attr('width',PL_NBCOL*PL_L).attr('height',PL_NBLIG*PL_L).attr('id','plateau_');
             pl.newPlateau(PL_L,PL_NBCOL,PL_NBLIG);
@@ -128,7 +130,16 @@ $(document).ready(function(){
             console.log("l'indice de la room est :" + indiceRoom);
 
             socket.emit('envoi_de_notre_moto',moto1,indiceRoom);
-            setTimeout(lanceMoto, 10000);
+            var seconde_left = 10;
+            var interval = setInterval(function(){
+                document.getElementById('timer_partie').innerHTML = --seconde_left;
+
+                if(seconde_left <= 0){
+                    lanceMoto();
+
+                    clearInterval(interval);
+                }
+            }, 1000);
         }
 
         /*============================= Met en mouvement les motos ================================ **/
@@ -269,7 +280,7 @@ $(document).ready(function(){
 
         socket.on('nouvelP', function(message){
             console.log("======================nouvelle partie =============================");
-            GenerPlateau();
+            BoutonReady();
         });
     });
 
