@@ -128,7 +128,7 @@ $(document).ready(function(){
             console.log("l'indice de la room est :" + indiceRoom);
 
             socket.emit('envoi_de_notre_moto',moto1,indiceRoom);
-            //setTimeout(lanceMoto, 10000);
+            setTimeout(lanceMoto, 10000);
         }
 
         /*============================= Met en mouvement les motos ================================ **/
