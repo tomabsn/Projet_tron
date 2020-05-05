@@ -1,0 +1,43 @@
+var nomsJoueurs = [];
+var nbJoueursConnectes = 0;
+
+var app = require('express')();
+var serveur = require('http').createServer(app);
+var io = require("socket.io")(serveur);
+
+serveur.listen(8888,function(){
+    console.log("serveur est en ecoute sur le port num : "+ 8888);
+});
+
+io.on('connection', function (socket) {
+   console.log('connetion'); 
+    socket.on('etat', function(message) {//
+        console.log("Un joueur demande l'état de la partie");	
+        let etat = {"nbJoueursConnectes":nbJoueursConnectes, "nomsJoueurs":nomsJoueurs};
+        console.log(etat);
+        socket.emit("etatPartie",etat);
+    });
+
+    socket.on('rejoindrePartie', function(message) {
+    console.log("Un joueur rejoint la partie");
+    nomsJoueurs.push(message['nomJoueur']);
+   // document.getElementById('joueur'+nbJoueursConnectes).innerHTML = nomsJoueurs[nbJoueursConnectes];
+    console.log(nomsJoueurs);
+    nbJoueursConnectes++;
+    socket.emit('nouveauJoueur',{'nomsJoueurs':nomsJoueurs,'nbJoueursConnectes':nbJoueursConnectes});
+    });
+
+    socket.on('quitterPartie', function(message) {
+	console.log("Un joueur quitte la partie");	
+    let numJoueur = message;
+    console.log("Ancien Joueur :"+ nomsJoueurs[numJoueur] )
+    nomsJoueurs.splice(numJoueur,1);
+    nbJoueursConnectes--;
+    socket.emit("ancienJoueur",message);
+    });
+
+    socket.on('actionPartie', function(message) {
+    console.log("Un joueur sélectionne un hexagone");
+    socket.broadcast.emit("actionPartie",message);
+    });   
+});

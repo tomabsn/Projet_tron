@@ -15,9 +15,10 @@ const PL_NBLIG =100;//Valeurs aime : 100
 
 //TEMPS DE JEU
 
-const INTERVAL = 20;
-const TMP_PARTIE = 120000;// en seconde : 120 pour 2 minutes de jeu sur le plateau
-const TMP_POSMUR = 5;// en s
+const NBR_MANCHE = 3; //nbre de manche dans une partie
+const INTERVAL = 15;
+const TMP_PARTIE = 120000;// 10 secondes pour une partie pour le moment
+const TMP_POSMUR = 2;// en s
 const TMP_RECHARGEMUR = 2;// en s
 
 //COULEURS DE JEU

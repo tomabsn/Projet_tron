@@ -1,12 +1,13 @@
+
+
 /**
  * InitGame()
  * ne prend aucun paramètre
  * résultat : initialise les motos donc créé les objets et les dessine sur la plateau.
  */
-function InitGame(id_){
+function InitGame(id_, idr){
     moto1 = new Moto(id_);//création de moto 1
-    moto1.dessinerMoto(); //on dessine la moto numéro 1
-    //console.log(moto1.id_player);
+    moto1.dessinerMoto(); //on dessine la moto numéro 1    
 }
 
 /*
@@ -18,22 +19,23 @@ function Moto(id_p){
 
     this.id_player = id_p; //identifiant du joueur
     this.speedX = 0; //vitesse de déplacement selon l'axe X
+    this.timerMur = 0;
     
 
     //vitesse de déplacement selon l'axe y 
     if(this.id_player == 1){
-        this.X = 300;
+        this.X = 200;
         this.Y = 400;
         this.speedY = -1;
         this.ori = "N";
-        this.color = "black"; //couleur de la moto du joueur
+        this.color = couleurG; //couleur de la moto du joueur
         this.rot = 0;//cet attribut nous permet de savoir l'angle de rotation de la moto
     }else{
-        this.X = 300;
-        this.Y = 200;
+        this.X = 200;
+        this.Y = 10;
         this.speedY = 1;
         this.ori = "S";
-        this.color = "red"; //couleur de la moto du joueur
+        this.color = couleurM; //couleur de la moto du joueur
         this.rot = 180;//cet attribut nous permet de savoir l'angle de rotation de la moto
     }
     this.rectangle = null; /*cet attribut vas nous servire pour stocker le dessin de la moto*/
@@ -102,7 +104,7 @@ function Moto(id_p){
         this.Y += this.speedY;  
     } 
     
-    this.reset = function(){
+    this.destroy = function(){
         var elem = document.getElementById("moto_html"+this.id_player);
         elem.parentNode.removeChild(elem);
     }
@@ -118,7 +120,7 @@ function Update(moto_update){
     var elem = document.getElementById("moto_html"+moto_update.id_player);
     elem.parentNode.removeChild(elem);
     moto_update.newPos();
-    moto_update.dessinerMoto();
+    moto_update.dessinerMoto(svgContainer);
 
 }
 
@@ -128,7 +130,7 @@ function Update(moto_update){
  * resultat : renvoi un entier selon la touche qui aura était enfoncé
  * exemple si on appuie sur gauche et haut direction() va renvoyer 3
  */
-function direction()
+function direction(touches)
 {
     var dir=0;
     if(touches.indexOf(37)!=-1) dir +=1; //gauche
@@ -150,8 +152,8 @@ function direction()
  * -> on donner l'angle de rotation à la moto ici 45d
  * -> on appel lé méthode moveUPLEFT() de moto_m
  */
-function rotation(moto_m){
-    var dir =  direction();
+function Move(moto_m){
+    var dir =  direction(touches);
     moto_m.speedX = 0; //la direction est mise à 0 en X et Y
     moto_m.speedY = 0;
    // console.log("rotation" + dir);
@@ -250,15 +252,6 @@ function rotation(moto_m){
           
 }
 
-/**
- * Move()
- * ne prend aucun paramètre pour le moment mais devrait prendre les deux motos en paramètre
- * résulatat : on regarde si l'utilisateur souhaite faire une rotation (changer de sens), et on appel les fonctions Update de chaque moto
- */
-function Move(moto_m){
-    //on rafracihi la moto
-    rotation(moto_m); //à chaque frame on regarde si on touche a été enfoncé et on effectue la rotation et le changement de direction 
-}
 
 /**
  *
@@ -266,11 +259,11 @@ function Move(moto_m){
  * moto_m : est un objet de type Moto
  * resultat : permet de détecter une colision entre un mur/une trainé et la moto du joueur
  */
-function collision(moto_m)
+function collision(moto_m1)
 {
     //console.log("je suis dans la fct collision");
-    let x = (moto_m.X +5);
-    let y = (moto_m.Y +25);
+    let x = (moto_m1.X +5);
+    let y = (moto_m1.Y +25);
 
     let safeZoneOffset = Math.sqrt(2*(PL_L*PL_L)) + 1;
 
@@ -284,8 +277,9 @@ function collision(moto_m)
     let y2;
     let boui;
   let bidule;
+  let collision = false;
 
-    switch (moto_m.ori){
+    switch (moto_m1.ori){
         
         case "N":
             //x et y deviennent le point en haut a gauche de la moto, quel que soit soit son orientation
@@ -299,22 +293,16 @@ function collision(moto_m)
             {
                 for (let j = 0; j < jmax; j+=PL_L)
                 {
-                   
-                    if(pl.isMur(xi+j,y+i))
-                    {
-                    alertcol(moto_m);
+                    if((pl.isMur(xi+j,y+i)))
+                    {   
+                        collision = true ;
                         break;
                     }
-                     //svgContainer.append("rect").attr("x", xi+j).attr("y", y+i).attr("width", 1).attr("height", 1).attr("fill", "green");
-                    
-                }
-               
-               
-                  
+                     //svgContainer.append("rect").attr("x", xi+j).attr("y", y+i).attr("width", 1).attr("height", 1).attr("fill", "green"); 
+                }        
             }
-           
-           
-            break;
+
+        break;
         case "S":
             x -=5;y+=25;
             // xi = (x - (x%PL_L));
@@ -330,42 +318,32 @@ function collision(moto_m)
                    
                     if(pl.isMur(xi+j,y-i))
                     {
-                    alertcol(moto_m);
+                        collision = true;
                         break;
                     }
                     //  svgContainer.append("rect").attr("x", xi+j).attr("y", y-i).attr("width", 1).attr("height", 1).attr("fill", "cyan");
-                    
-                }
-               
-               
-                  
+                }   
             }
            
-            break;
+        break;
         case "O":
             x -=25;y-=5;
             yi = y;
             if(y%PL_L==0)jmax=MOT_Width;
             else jmax = MOT_Width+PL_L;
 
-            
-
             for (let i = 0; i < 25-safeZoneOffset; i+=PL_L)           
             {
                 for (let j = 0; j < jmax; j+=PL_L)
                 {
-                   
                     if(pl.isMur(x+i,yi+j))
                     {
-                    alertcol(loto_m)
+                        collision = true;
                         break;
                     }
-                    // svgContainer.append("rect").attr("x", x+i).attr("y", yi+j).attr("width", 1).attr("height", 1).attr("fill", "lime");
-                    
+                    // svgContainer.append("rect").attr("x", x+i).attr("y", yi+j).attr("width", 1).attr("height", 1).attr("fill", "lime"); 
                 }
-               
-               
-                  
+  
             }
            
             break;
@@ -395,7 +373,7 @@ function collision(moto_m)
                    
                     if(pl.isMur(x-i,yi+j))
                     {
-                    alertcol(moto_m)
+                        collision(true);
                         break;
                     }
                     //  svgContainer.append("rect").attr("x", x-i).attr("y", yi+j).attr("width", 1).attr("height", 1).attr("fill", "purple");
@@ -430,17 +408,17 @@ function collision(moto_m)
               {
                   if(pl.isMur(x2+j*bidule+i*bidule,y2-j*bidule))
                   {
-                     alertcol(moto_m)
-                      break;
+                    collision = true;
+                    break;
                   }
                   
                     //svgContainer.append("rect").attr("x", x2+j*bidule+i*bidule).attr("y", y2-j*bidule+i*bidule).attr("width", 1).attr("height", 1).attr("fill", "green");   
               }
 
-              if(pl.isMur(x2+2*boui+i*bidule , y2+2*boui+i*bidule))
+              if(pl.isMur(x2+2*boui+i*bidule , y2-2*boui+i*bidule))
                   {
-                      alertcol(moto_m)
-                      break;
+                    collision = true;
+                    break;
                   }
             //svgContainer.append("rect").attr("x", x2+2*boui+i*bidule).attr("y", y2-2*boui+i*bidule).attr("width", 1).attr("height", 1).attr("fill", "green");
                 }
@@ -469,7 +447,7 @@ function collision(moto_m)
                 
                     if(pl.isMur(x2+j*bidule-i*bidule,y2-j*bidule+i*bidule))
                     {
-                        alertcol(moto_m)
+                        collision = true;
                         break;
                     }
                     
@@ -478,7 +456,7 @@ function collision(moto_m)
 
                 if(pl.isMur(x2+2*boui-i*bidule,y2+2*boui+i*bidule))
                     {
-                        alertcol(moto_m)
+                        collision = true;
                         break;
                     }
                 // svgContainer.append("rect").attr("x", x2+2*boui-i*bidule).attr("y", y2+2*boui+i*bidule).attr("width", 1).attr("height", 1).attr("fill", "blue");
@@ -509,8 +487,8 @@ function collision(moto_m)
                  
                   if(pl.isMur(x2+j*bidule+i*bidule,y2-j*bidule-i*bidule))
                   {
-                     alertcol(moto_m)
-                      break;
+                    collision = true;
+                    break;
                   }
                   
                 //    svgContainer.append("rect").attr("x", x2+j*bidule+i*bidule).attr("y", y2+j*bidule-i*bidule).attr("width", 1).attr("height", 1).attr("fill", "red");   
@@ -518,7 +496,7 @@ function collision(moto_m)
 
               if(pl.isMur(x2+2*boui+i*bidule,y2+2*boui-i*bidule))
                   {
-                      alertcol(moto_m)
+                      collision = true;
                       break;
                   }
             //   svgContainer.append("rect").attr("x", x2+2*boui+i*bidule).attr("y", y2+2*boui-i*bidule).attr("width", 1).attr("height", 1).attr("fill", "red");
@@ -549,7 +527,7 @@ function collision(moto_m)
                
                 if(pl.isMur(x2+j*bidule-i*bidule,y2-j*bidule-i*bidule))
                 {
-                    alertcol(moto_m)
+                    collision = true ;
                     break;
                 }
                 
@@ -558,7 +536,7 @@ function collision(moto_m)
 
             if(pl.isMur(x2+2*boui-i*bidule,y2+2*boui-i*bidule))
                 {
-                    alertcol(moto_m)
+                    collision = true;
                     break;
                 }
             //  svgContainer.append("rect").attr("x", x2+2*boui-i*bidule).attr("y", y2-2*boui-i*bidule).attr("width", 1).attr("height", 1).attr("fill", "yellow");
@@ -566,7 +544,10 @@ function collision(moto_m)
             break;
         default: console.log("pas d'oritentation");
         break;
+
+    
     }   
+    return collision ;
 }
 
 /**
@@ -578,38 +559,22 @@ function timerMurF(moto_m){
 
     //console.log("dans timerMurF");
 
-    if (timerMur > 0) timerMur -= (INTERVAL/1000);
+    if (moto_m.timerMur > 0) moto_m.timerMur -= (INTERVAL/1000);
 
-    let timeraffiche = (Math.floor(timerMur*1000))/1000;
+    let timeraffiche = (Math.floor(moto_m.timerMur*1000))/1000;
 
-    if (timerMur <= 0 && murActif == true)// Quand on a finis de poser un mur
+    if (moto_m.timerMur <= 0 && murActif == true)// Quand on a finis de poser un mur
     {
-        timerMur = TMP_RECHARGEMUR;
+        moto_m.timerMur = TMP_RECHARGEMUR;
         murActif = false;
         moto_m.train_act = false;
     }
-    if (timerMur <= 0 && murActif == false)//Quand ona fini de recharger le mur
+    if (moto_m.timerMur <= 0 && murActif == false)//Quand ona fini de recharger le mur
     {
-        timerMur = 0;
+        moto_m.timerMur = 0;
         murActif = false;
         moto_m.train_act = false;
     }
-
-    if (timerMur == 0)
-    {
-        document.getElementById("Space").innerText = "Pret";
-        document.getElementById("etatSpace").innerText = "Ready";
-    }
-    else if(murActif)
-    {
-        document.getElementById("Space").innerText = "EN COURS";
-        document.getElementById("etatSpace").innerText = "Temps de pose restant : "+timeraffiche+" s";
-    }
-    else if(!murActif)
-    {
-        document.getElementById("Space").innerText = "Rechargement";
-        document.getElementById("etatSpace").innerText = "Temps de recharge restant restant : "+timeraffiche+" s";
-    }   
 }
 
 /**
@@ -630,19 +595,19 @@ function defEvent(motoPr)
          {  
             if(e.keyCode==32)
             {
-                
+
                 if (motoPr.train_act == true)
                     {
                         motoPr.train_act = false;
                         murActif = false;
-                        timerMur = TMP_RECHARGEMUR;
-                        console.log("descativ avance")
+                        motoPr.timerMur = TMP_RECHARGEMUR;
                     }
-                else if (motoPr.train_act == false && timerMur==0)
-                    { 
+                else if (motoPr.train_act == false && motoPr.timerMur==0)
+                    {
+                        //console.group("trainé=========================================================");
                         motoPr.train_act = true;
                         murActif = true;
-                        timerMur = TMP_POSMUR;
+                        motoPr.timerMur = TMP_POSMUR;
                     }
             } 
             var code = e.keyCode;
@@ -671,19 +636,23 @@ function defEvent(motoPr)
  * resultat : si la trainé de moto_m est active alors on dessine la traine et dans tous les cas la moto avance dans son orientation
  */
 function avancedefault(moto_m){
-    //console.log(moto_m.ori, moto_m.rot);
+    //console.log(moto_m.train_act);
 
     switch (moto_m.ori){
         case "N":
             if(moto_m.train_act){
+                //console.log("==============================================");
                 pl.transformeCase(moto_m.X+5,moto_m.Y+25,moto_m.color,"mur"); //permet de créer la trainée de la moto
+                //console.log(pl.transformeCase(moto_m.X+5,moto_m.Y+25,moto_m.color,"mur"));
             }
             moto_m.moveup();
         break;
 
         case "S":
             if(moto_m.train_act){
+                //console.log("==============================================");
                 pl.transformeCase(moto_m.X+5,moto_m.Y+25,moto_m.color,"mur"); //permet de créer la trainée de la moto
+                //console.log("trainé");
             }
             moto_m.movedown();
         break;
@@ -733,30 +702,163 @@ function avancedefault(moto_m){
     }
 }
 
-/**
- * alertcol()
- * ne prend aucun paramètre
- * résultat : alerte le joueur qu'il y a eu une collision
- */
-function alertcol(moto_m)
-{
-    //alert("collision");
 
-    socket.emit('collision',moto_m.id_player);   
+
+/**
+ *  distance(x1,y1,x2,y2)
+ *  resultat : renvoie la distance au carre entre le point x1,y1 et le point x2,y2
+ */
+function distance(x1,y1,x2,y2)
+{
+    return Math.pow(x1-x2,2)+Math.pow(y1-y2,2);
 }
+
+function collisionJoueur(moto1,moto2)
+{
+    let xmax = 0,xmin = 9999,ymax = 0,ymin = 999999;
+    let collider = ptsJoueur(moto1);
+    let PtsJoueuradv = ptsJoueur(moto2);
+    for(let i = 0; i < 4;i++)
+    {
+        xmax = Math.max(collider[i]["x"],xmax);
+        ymax = Math.max(collider[i]["y"],ymax);
+        xmin = Math.min(collider[i]["x"],xmin);
+        ymin = Math.min(collider[i]["y"],ymin);
+    }
+    let Check = false;
+    for(let i = 0; i < 4;i++)
+    {
+        if(PtsJoueuradv[i]["x"]>=xmin && PtsJoueuradv[i]["x"]<=xmax && PtsJoueuradv[i]["y"]>=ymin && PtsJoueuradv[i]["y"]<=ymax) Check = true;
+    }
+
+    if(Check && (moto1.ori == "N" || moto1.ori == "S" || moto1.ori == "O" || moto1.ori == "E" )) return true;
+    else if(!Check ) return false;
+    
+    else
+    {
+        
+            let Yxmax ;
+            let Xymax ;
+            let Yxmin ;
+            let Xymin ;
+        for(let i = 0; i < 4;i++)
+        {
+            if(collider[i]["x"] = xmax)Yxmax = collider[i]["y"];
+            else if(collider[i]["x"] = xmin)Yxmin = collider[i]["y"];
+            else if(collider[i]["y"] = ymax)Xymax = collider[i]["x"];
+            else if(collider[i]["y"] = ymin)Xymin = collider[i]["x"];
+            
+        }
+        for(let i = 0; i < 4;i++)
+        {
+            if(distance(xmax,ymax,PtsJoueuradv[i]["x"],PtsJoueuradv[i]["y"])>Xymax,Yxmax,PtsJoueuradv[i]["x"],PtsJoueuradv[i]["y"])return true;
+            if(distance(xmin,ymin,PtsJoueuradv[i]["x"],PtsJoueuradv[i]["y"])>Xymin,Yxmin,PtsJoueuradv[i]["x"],PtsJoueuradv[i]["y"])return true;
+            if(distance(xmax,ymin,PtsJoueuradv[i]["x"],PtsJoueuradv[i]["y"])>Xymin,Yxmax,PtsJoueuradv[i]["x"],PtsJoueuradv[i]["y"])return true;
+            if(distance(xmin,ymax,PtsJoueuradv[i]["x"],PtsJoueuradv[i]["y"])>Xymax,Yxmin,PtsJoueuradv[i]["x"],PtsJoueuradv[i]["y"])return true;
+        }
+    }
+}
+
+/**
+ *  ptsJoueur(moto)
+ * moto : objet de type moto
+ * resultat : tab un tableau de dictionnaire avec x et y une liste de point representant les 4 angles de la moto
+ */
+function ptsJoueur(moto)
+{
+    let x = moto.X +5 ; let y = moto.Y + 25;
+    let tab = [];
+    let x1 = 0;
+    let y1 = -25;
+    let teta = Math.PI / 4;
+    let x2 =(x1*Math.cos(teta)-y1*Math.sin(teta));
+    let y2 =(x1*Math.sin(teta)+y1*Math.cos(teta));
+    let boui = Math.sqrt(((MOT_Width/2)*(MOT_Width/2))/2); 
+    switch(moto.ori)
+    {
+        case "N" : 
+            tab.push({"x":x-5,"y":y-25});
+            tab.push({"x":x+5,"y":y-25});
+            tab.push({"x":x-5,"y":y+5});
+            tab.push({"x":x+5,"y":y+5});
+            break;
+        case "S" : 
+            tab.push({"x":x-5,"y":y-5});
+            tab.push({"x":x+5,"y":y-5});
+            tab.push({"x":x-5,"y":y+25});
+            tab.push({"x":x+5,"y":y+25});
+            break;
+        case "E" : 
+            tab.push({"x":x+25,"y":y-5});
+            tab.push({"x":x+25,"y":y+5});
+            tab.push({"x":x-5,"y":y-5});
+            tab.push({"x":x-5,"y":y+5});
+            break;
+        case "O" : 
+            tab.push({"x":x-25,"y":y-5});
+            tab.push({"x":x-25,"y":y+5});
+            tab.push({"x":x+5,"y":y-5});
+            tab.push({"x":x+5,"y":y+5});
+            break;
+
+        case "NE" : 
+           
+            x2 = x+x2-boui;
+            y2 = y+y2-boui;
+            tab.push({"x":x2,"y":y2});
+            tab.push({"x":x2+2*boui,"y":y2+2*boui});
+            tab.push({"x":x2-6*boui,"y":y2+6*boui});
+            tab.push({"x":x2-4*boui,"y":y2+8*boui});
+            break;
+        case "NO" : 
+            
+            x2 = x-x2-boui;
+            y2 = y+y2+boui;
+            tab.push({"x":x2,"y":y2});
+            tab.push({"x":x2+2*boui,"y":y2-2*boui});
+            tab.push({"x":x2+6*boui,"y":y2+6*boui});
+            tab.push({"x":x2+8*boui,"y":y2+4*boui});
+            break;
+        case "SE" : 
+            
+            x2 = x+x2-boui;
+            y2 = y-y2+boui;
+            tab.push({"x":x2,"y":y2});
+            tab.push({"x":x2+2*boui,"y":y2-2*boui});
+            tab.push({"x":x2-6*boui,"y":y2-6*boui});
+            tab.push({"x":x2-4*boui,"y":y2-8*boui});
+            break;
+        case "SO" : 
+            
+            x2 = x-x2-boui;
+            y2 = y-y2-boui;
+            tab.push({"x":x2,"y":y2});
+            tab.push({"x":x2+2*boui,"y":y2+2*boui});
+            tab.push({"x":x2+6*boui,"y":y2-6*boui});
+            tab.push({"x":x2+8*boui,"y":y2-4*boui});
+            break;
+
+        
+    }
+    return tab;
+}
+
+
 
 /**
  * Frame(moto_m1, moto_m2)
  * moto_m1/2 sont deux objets de type moto
  * resultat : on met en mouvement toutes les motos et on détecte si il y a une collision et de plus on met leur chrono sur les murs
  */
-function Frame(moto_m1)
+function Frame(moto_m1, moto_m2)
 {
+    let colli = false ;
+
     Move(moto_m1);
 
-    socket.emit('joueur_bouge', moto_m1);
-
-    collision(moto_m1);
-
+    colli = ( collision(moto_m1) || collisionJoueur(moto_m1, moto_m2) ) ;
+    
     timerMurF(moto_m1);
+  if(!finManche)
+    socket.emit('joueur_bouge', moto_m1,indiceRoom, colli);
 }
